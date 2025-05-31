@@ -1,0 +1,14 @@
+/venv/
+
+__pycache__/
+*.pyc
+
+*.sqlite
+*.sqlite3
+*.db
+
+server/utils/server.log
+
+server/.env
+
+/.idea/
