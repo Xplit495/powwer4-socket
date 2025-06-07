@@ -75,9 +75,10 @@ def forfeit_due_to_disconnection(socket_id, player):
     emit('forfeit', {'message': f"{player.username} a abandonné la partie."}, to=opponent_socket_id)
 
     opponent_player = connected_clients[opponent_socket_id]
-    opponent_player.end_game(is_winner=True)
+    game.is_finished = True
+    game.winner = game.players.index(opponent_player) + 1
 
-    clean_game(game_id)
+    clean_game(game, game_id)
 
 @socketio.on('register')
 def handle_register(data):
@@ -276,8 +277,7 @@ def broadcast_to_game(game_id, event_name, data, exclude_sid=None):
     # TODO: Implémenter le broadcast
     pass
 
-def clean_game(game_id):
-    game = active_games[game_id]
+def clean_game(game, game_id):
     tie = game.is_finished and game.winner is None
 
     for player in game.players:
