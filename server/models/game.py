@@ -1,6 +1,7 @@
 import uuid
 
-from .board import Board
+from board import Board
+
 
 class Game:
     def __init__(self, player1, player2):

@@ -1,0 +1,1 @@
+# Fonction utilitaire de la DB, ajoute un joueur à la base de données ou met à jour ses stats.

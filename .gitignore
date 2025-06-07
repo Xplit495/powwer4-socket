@@ -4,10 +4,8 @@ __pycache__/
 *.pyc
 
 *.sqlite
-*.sqlite3
-*.db
 
-server/utils/server.log
+server/server.log
 
 server/.env
 
