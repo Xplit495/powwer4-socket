@@ -2,20 +2,14 @@ class MatchmakingQueue:
     def __init__(self):
         self.queue = []
 
-    def add_player(self, player):
-        self.queue.append(player)
+    def add_player(self, socket_id):
+        self.queue.append(socket_id)
 
-    def remove_player(self, player):
-        if player in self.queue:
-            self.queue.remove(player)
+    def remove_player(self, socket_id):
+        self.queue.remove(socket_id)
 
     def find_match(self):
-        if len(self.queue) >= 2:
-            return self.queue.pop(0), self.queue.pop(0)
-        return None
+        return self.queue.pop(0), self.queue.pop(0)
 
-    def clear_queue(self):
-        self.queue.clear()
-
-    def is_player_in_queue(self, player):
-        return player in self.queue
+    def is_player_in_queue(self, socket_id):
+        return socket_id in self.queue

@@ -73,3 +73,8 @@ class Game:
                 return True
 
         return False
+
+    def get_opponent_socket_id(self, player_socket_id):
+        if self.players[0].socket_id == player_socket_id:
+            return self.players[1].socket_id
+        return self.players[0].socket_id

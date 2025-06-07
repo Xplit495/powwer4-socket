@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 
-from server.models import Player
+from models import Player, Status
+from models import MatchmakingQueue
 
 load_dotenv()
 
@@ -28,19 +29,15 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-
 connected_clients = {}
-
 active_games = {}
-waiting_queue = []
+queue = MatchmakingQueue()
 
 @socketio.on('connect')
 def handle_connect():
     socket_id = request.sid
 
-    connected_clients[socket_id] = {
-        Player(request.remote_addr, datetime.now(), False)
-    }
+    connected_clients[socket_id] = Player(request.remote_addr, datetime.now(), False)
 
     logger.info(f"[CONNECT] {socket_id} from {request.remote_addr}")
 
@@ -51,26 +48,36 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    """
-    Déclenché quand un client se déconnecte (volontairement ou perte réseau).
-
-    CE QUE CETTE FONCTION DOIT FAIRE :
-    1. Récupérer le socket_id du client déconnecté
-    2. Si le joueur était dans la queue, le retirer
-    3. Si le joueur était en partie :
-       - Notifier l'adversaire
-       - Gérer l'abandon (victoire par forfait)
-       - Nettoyer la partie
-    4. Supprimer le joueur de toutes les structures de données
-    5. Logger la déconnexion
-
-    ATTENTION : Cette fonction est CRITIQUE pour éviter les fuites mémoire !
-    """
     socket_id = request.sid
-    logger.info(f"Déconnexion: {socket_id}")
 
-    # TODO: Implémenter le nettoyage complet
-    pass
+    if socket_id not in connected_clients:
+        logger.warning(f"[DISCONNECT] Socket inconnu: {socket_id}")
+        return
+
+    player = connected_clients[socket_id]
+
+    if player.status == Status.WAITING :
+        queue.remove_player(socket_id)
+        
+    if player.status == Status.IN_GAME:
+        forfeit_due_to_disconnection(socket_id, player)
+
+    del connected_clients[socket_id]
+
+    connection_duration = str(datetime.now() - player.connected_at).split('.')[0]
+    logger.info(f"[DISCONNECT] {player.username} ({socket_id}) depuis {player.player_ip} après {connection_duration}")
+
+def forfeit_due_to_disconnection(socket_id, player):
+    game_id = player.current_game_id
+    game = active_games[game_id]
+    opponent_socket_id = game.get_opponent_socket_id(socket_id)
+
+    emit('forfeit', {'message': f"{player.username} a abandonné la partie."}, to=opponent_socket_id)
+
+    opponent_player = connected_clients[opponent_socket_id]
+    opponent_player.end_game(is_winner=True)
+
+    clean_game(game_id)
 
 @socketio.on('register')
 def handle_register(data):
@@ -256,14 +263,6 @@ def get_player_by_socket(socket_id):
     # TODO: Implémenter
     pass
 
-def get_current_game(player):
-    """
-    Récupère la partie en cours d'un joueur.
-    Retourne None si pas en partie.
-    """
-    # TODO: Implémenter
-    pass
-
 def broadcast_to_game(game_id, event_name, data, exclude_sid=None):
     """
     Envoie un message à tous les joueurs d'une partie.
@@ -278,17 +277,21 @@ def broadcast_to_game(game_id, event_name, data, exclude_sid=None):
     pass
 
 def clean_game(game_id):
-    """
-    Nettoie une partie terminée.
+    game = active_games[game_id]
+    for player in game.players:
+        player.end_game(is_winner=(player == game.winner))
+        logger.info(f"[GAME OVER] {player.username} a terminé la partie {game_id}")
 
-    CE QUE CETTE FONCTION DOIT FAIRE :
-    1. Retirer les joueurs des rooms
-    2. Supprimer la partie de active_games
-    3. Mettre à jour le statut des joueurs
-    4. Logger la fin de partie
+    del active_games[game_id]
+    logger.info(f"[CLEAN GAME] Partie {game_id} nettoyée")
+
+def update_player_stats(player):
     """
-    # TODO: Implémenter le nettoyage
-    pass
+    Met à jour les statistiques du joueur après une partie.
+
+    Il faut faire un appel à la base de données pour mettre à jour les stats persistantes.
+    """
+    # TODO: Implémenter la mise à jour des stats
 
 def validate_username(username):
     """
