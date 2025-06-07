@@ -37,7 +37,7 @@ queue = MatchmakingQueue()
 def handle_connect():
     socket_id = request.sid
 
-    connected_clients[socket_id] = Player(request.remote_addr, datetime.now(), False)
+    connected_clients[socket_id] = Player(socket_id, request.remote_addr, datetime.now(), False)
 
     logger.info(f"[CONNECT] {socket_id} from {request.remote_addr}")
 
@@ -56,6 +56,9 @@ def handle_disconnect():
 
     player = connected_clients[socket_id]
 
+    connection_duration = str(datetime.now() - player.connected_at).split('.')[0]
+    logger.info(f"[DISCONNECT] {player.username} ({socket_id}) depuis {player.player_ip} après {connection_duration}")
+
     if player.status == Status.WAITING :
         queue.remove_player(socket_id)
         
@@ -63,9 +66,6 @@ def handle_disconnect():
         forfeit_due_to_disconnection(socket_id, player)
 
     del connected_clients[socket_id]
-
-    connection_duration = str(datetime.now() - player.connected_at).split('.')[0]
-    logger.info(f"[DISCONNECT] {player.username} ({socket_id}) depuis {player.player_ip} après {connection_duration}")
 
 def forfeit_due_to_disconnection(socket_id, player):
     game_id = player.current_game_id
@@ -278,12 +278,24 @@ def broadcast_to_game(game_id, event_name, data, exclude_sid=None):
 
 def clean_game(game_id):
     game = active_games[game_id]
+    tie = game.is_finished and game.winner is None
+
     for player in game.players:
-        player.end_game(is_winner=(player == game.winner))
-        logger.info(f"[GAME OVER] {player.username} a terminé la partie {game_id}")
+        if tie:
+            result = "tie"
+        else:
+            player_number = game.players.index(player) + 1
+            is_winner = (player_number == game.winner)
+            if is_winner:
+                result = "win"
+            else:
+                result = "lose"
+
+        player.end_game(result)
+
+        logger.info(f"[GAME OVER] {player.username} - {result} - Partie {game_id}")
 
     del active_games[game_id]
-    logger.info(f"[CLEAN GAME] Partie {game_id} nettoyée")
 
 def update_player_stats(player):
     """
