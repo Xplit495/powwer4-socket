@@ -1,28 +1,6 @@
-class Board:
-    def __init__(self):
-        self.grid = [[None for _ in range(7)] for _ in range(6)]
+import uuid
 
-    def add_piece(self, row, column, player_number):
-        self.grid[row][column] = player_number
-
-    def get_cell(self, row, column):
-        return self.grid[row][column]
-
-    def get_lowest_empty_row(self, column):
-        for row in range(5, -1, -1):
-            if self.grid[row][column] is None:
-                return row
-        return None
-
-    def is_valid_column(self, column):
-        return self.grid[0][column] is None
-
-    def is_full(self):
-        for col in range(7):
-            if self.grid[0][col] is None:
-                return False
-        return True
-
+from .board import Board
 
 class Game:
     def __init__(self, player1, player2):
@@ -32,6 +10,7 @@ class Game:
         self.is_finished = False
         self.winner = None
         self.last_move = None
+        self.game_id = str(uuid.uuid4())
 
     def play_move(self, player, column):
         if self.players[self.current_player_index] != player:

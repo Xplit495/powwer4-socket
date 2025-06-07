@@ -1,25 +1,27 @@
 from datetime import datetime
 from enum import Enum
 
-
 class Status(Enum):
+    ONLINE = 0
     IDLE = 1
     WAITING = 2
     IN_GAME = 3
 
 class Player:
-    def __init__(self, player_id, socket_id, username, total_games_count, win_streak, win_games_count):
-        self.player_id = player_id
-        self.socket_id = socket_id
+    def __init__(self, player_ip, connected_at, authenticated):
+        self.player_ip = player_ip
+        self.connected_at = connected_at
+        self.authenticated = authenticated
 
-        self.username = username
+        self.player_id = None
 
-        self.total_games_count = total_games_count
-        self.win_streak = win_streak
-        self.win_games_count = win_games_count
-        self.lose_games_count = total_games_count - win_games_count
+        self.username = None
 
-        self.status = Status.IDLE
+        self.total_games_count = None
+        self.win_games_count = None
+        self.lose_games_count = None # total_games_count - win_games_count
+
+        self.status = Status.ONLINE
         self.current_game_id = None
 
         self.joined_queue_at = None
@@ -38,9 +40,9 @@ class Player:
         self.current_game_id = None
         self.total_games_count += 1
         if is_winner:
-            self.win_streak += 1
+            self.win_games_count += 1
 
     def get_win_rate(self):
         if self.total_games_count == 0:
             return 0
-        return round((self.total_games_count / self.win_games_count) * 100, 1)
+        return round((self.win_games_count / self.total_games_count) * 100, 1)
