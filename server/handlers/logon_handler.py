@@ -1,37 +1,47 @@
-from dotenv import load_dotenv
-from flask import Flask, request
-from models import MatchmakingQueue
-from models import Player, Status
+import logging
+import re
+import uuid
 
-from server import *
+from flask_socketio import emit
+
+from server import socketio
+from server.database import email_exists, username_exists, create_user
 
 
 @socketio.on('register')
 def handle_register(data):
-    """
-    Le client s'identifie avec ses informations.
+    try:
+        validation_result = validate_registration_data(data)
+        if not validation_result['valid']:
+            emit('register_error', {'message': validation_result['error']})
+            return
 
-    DONNÉES REÇUES : {
-        'username': str,      # Pseudo du joueur
-        'client_version': str # Version du client (pour compatibilité)
-    }
+        email = data['email'].lower().strip()
+        username = data['username'].strip()
+        password_hash = data['password']
 
-    CE QUE CETTE FONCTION DOIT FAIRE :
-    1. Valider le format des données reçues
-    2. Vérifier que le username est valide (longueur, caractères...)
-    3. Vérifier que le socket_id n'est pas déjà enregistré
-    4. Créer un objet Player avec les infos
-    5. Stocker dans registered_players
-    6. Répondre au client avec succès ou erreur
+        if email_exists(email):
+            emit('register_error', {'message': 'Cet email est déjà utilisé'})
+            return
 
-    RÉPONSES POSSIBLES :
-    - emit('register_success', {'username': ..., 'player_id': ...})
-    - emit('register_error', {'message': 'Username already taken'})
-    """
-    logger.info(f"Tentative d'enregistrement: {data}")
+        if username_exists(username):
+            emit('register_error', {'message': 'Ce nom d\'utilisateur est déjà pris'})
+            return
 
-    # TODO: Implémenter la validation et l'enregistrement
-    pass
+        player_id = str(uuid.uuid4())
+
+        create_user(player_id, email, password_hash, username)
+
+        emit('register_success', {
+            'message': 'Inscription réussie',
+            'username': username
+        })
+
+        logging.info(f"Nouvel utilisateur inscrit: {username} ({email}) (player_id: {player_id})")
+
+    except Exception as e:
+        logging.error(f"Erreur lors de l'inscription: {e}")
+        emit('register_error', {'message': 'Erreur serveur, veuillez réessayer'})
 
 @socketio.on('login')
 def handle_login(data):
@@ -51,3 +61,27 @@ def handle_login(data):
     """
     # TODO: Implémenter si nécessaire
     pass
+
+# Pour faire jolie, car une verification via mail serait plus esthétique, mais ce sera un bonus
+def validate_registration_data(data):
+    required_fields = ['email', 'username', 'password']
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return {'valid': False, 'error': f'Le champ {field} est requis'}
+
+    email = data['email'].strip()
+    username = data['username'].strip()
+    password = data['password']
+
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    if not re.match(email_pattern, email):
+        return {'valid': False, 'error': 'Format d\'email invalide'}
+
+    username_pattern = r'^[a-zA-Z0-9_-]+$'
+    if not re.match(username_pattern, username):
+        return {'valid': False, 'error': 'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, _ et -'}
+
+    if len(password) < 10:  # Un hash devrait être plus long
+        return {'valid': False, 'error': 'Mot de passe invalide'}
+
+    return {'valid': True, 'error': None}

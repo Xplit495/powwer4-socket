@@ -6,9 +6,7 @@ from dotenv import load_dotenv
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 
-from handlers import forfeit_due_to_disconnection
-from models import MatchmakingQueue
-from models import Player, Status
+from .models import MatchmakingQueue, Player, Status
 from server.database.init_db import init_database
 
 load_dotenv()
@@ -24,8 +22,8 @@ socketio = SocketIO(
     max_http_buffer_size=1000000
 )
 
-logging.basicConfig(
-    level=logging.DEBUG,
+logging.basicConfig( # Bien penser à exporter cette variable pour l'utiliser partout dans le code et ne pas avoir besoin d'importer logging dans chaque fichier (j'ai la flemme de le faire pour l'instant)
+    level=logging.DEBUG, # Bien demander à Claude ce que fait précisément le logger. Mais quand même vérifier si c'est utile ou pas sinon importer logger à chaque fois.
     format='[%(asctime)s] %(levelname)s: %(message)s',
     datefmt='%H:%M:%S'
 )
@@ -65,6 +63,8 @@ def handle_disconnect():
         queue.remove_player(socket_id)
         
     if player.status == Status.IN_GAME:
+        # Import local pour éviter une importation circulaire
+        from .handlers import forfeit_due_to_disconnection
         forfeit_due_to_disconnection(socket_id, player)
 
     del connected_clients[socket_id]

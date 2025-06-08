@@ -1,9 +1,10 @@
+import logging
 import sqlite3
 import os
 
 def init_database():
     if os.path.exists('db.sqlite'):
-        print("La base de données existe déjà. Aucune action n'est nécessaire.")
+        logging.info("La base de données existe déjà. Aucune action n'est nécessaire.")
         return
 
     conn = sqlite3.connect('db.sqlite')
@@ -14,6 +15,6 @@ def init_database():
         cursor.executescript(schema_sql)
 
     conn.commit()
-    print("Fichier et tables de la base de données créée avec succès.")
+    logging.info("Fichier et tables de la base de données créée avec succès.")
 
     conn.close()

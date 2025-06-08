@@ -1,6 +1,8 @@
 from flask import request
+from flask_socketio import emit
+import logging
 
-from server import *
+from server import socketio, active_games, connected_clients
 
 
 @socketio.on('play_move')
@@ -26,7 +28,7 @@ def handle_play_move(data):
     - emit('game_over', {...}, room=game_id)
     """
     socket_id = request.sid
-    logger.info(f"Coup joué par {socket_id}: {data}")
+    logging.info(f"Coup joué par {socket_id}: {data}")
 
     # TODO: Implémenter la logique de jeu
     pass
@@ -75,6 +77,6 @@ def clean_game(game, game_id):
 
         player.end_game(result)
 
-        logger.info(f"[GAME FINISH] {player.username} - {result} - Partie {game_id}")
+        logging.info(f"[GAME FINISH] {player.username} - {result} - Partie {game_id}")
 
     del active_games[game_id]

@@ -1,9 +1,11 @@
+import logging
+
 from dotenv import load_dotenv
 from flask import Flask, request
 from models import MatchmakingQueue
 from models import Player, Status
 
-from server import *
+from server import socketio
 
 @socketio.on('join_queue')
 def handle_join_queue():
@@ -23,7 +25,7 @@ def handle_join_queue():
     - emit('queue_error', {'message': 'Already in queue'})
     """
     socket_id = request.sid
-    logger.info(f"Joueur {socket_id} rejoint la queue")
+    logging.info(f"Joueur {socket_id} rejoint la queue")
 
     # TODO: Implémenter la logique de queue
     pass

@@ -1,18 +1,17 @@
 CREATE TABLE IF NOT EXISTS users (
     player_id TEXT PRIMARY KEY,
-
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     username TEXT UNIQUE NOT NULL,
 
-    latest_socket_id TEXT,
-    latest_player_ip TEXT,
-    last_connection_time TIMESTAMP,
-
     total_games_count INTEGER DEFAULT 0,
     win_games_count INTEGER DEFAULT 0,
     lose_games_count INTEGER DEFAULT 0,
-    tie_games_count INTEGER DEFAULT 0
+    tie_games_count INTEGER DEFAULT 0,
+
+    latest_socket_id TEXT,
+    latest_player_ip TEXT,
+    last_connection_time TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS game_history (
