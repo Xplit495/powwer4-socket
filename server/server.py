@@ -10,6 +10,13 @@ from flask_socketio import leave_room
 from database import init_database, logout_user_update
 from models import MatchmakingQueue, Player, Status
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+load_dotenv()
+
+clients_dictionary = {}
+active_games = {}
+queue = MatchmakingQueue()
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
@@ -51,14 +58,6 @@ def handle_disconnect():
         logging.info(f"[DISCONNECT] {socket_id} from {request.remote_addr}")
 
     del clients_dictionary[socket_id]
-
-
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-load_dotenv()
-
-clients_dictionary = {}
-active_games = {}
-queue = MatchmakingQueue()
 
 init_database()
 

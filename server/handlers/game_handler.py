@@ -4,6 +4,7 @@ from flask import request
 from flask_socketio import emit
 
 from server import socketio, active_games, clients_dictionary
+from server.database import update_game_history
 
 
 @socketio.on('play_move')
@@ -99,5 +100,6 @@ def clean_game(game, game_id):
         player.end_game(result)
 
     logging.info(f"Game finished : {game_id}")
+    update_game_history(game)
 
     del active_games[game_id]

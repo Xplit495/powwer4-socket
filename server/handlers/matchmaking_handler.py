@@ -41,7 +41,7 @@ def check_matchmaking():
         player1 = clients_dictionary[player1_socket_id]
         player2 = clients_dictionary[player2_socket_id]
 
-        current_player_index = random.randint(1, 2) - 1 # Less 1 to stay coherent with 0-based index
+        current_player_index = random.randint(0, 1)
         active_games[game_id] = Game(game_id, player1, player2, current_player_index)
 
         player1.start_game(game_id)
@@ -50,6 +50,6 @@ def check_matchmaking():
         join_room(game_id, sid=player1_socket_id)
         join_room(game_id, sid=player2_socket_id)
 
-        emit('game_found', {'opponent_username': player2.username, 'your_turn': current_player_index == 1,'player_number': 1}, to=player1_socket_id)
-        emit('game_found', {'opponent_username': player1.username, 'your_turn': current_player_index == 2,'player_number': 2}, to=player2_socket_id)
+        emit('game_found', {'opponent_username': player2.username, 'your_turn': current_player_index == 0,'player_number': 1}, to=player1_socket_id)
+        emit('game_found', {'opponent_username': player1.username, 'your_turn': current_player_index == 1,'player_number': 2}, to=player2_socket_id)
         logging.info(f"Match created: {game_id} - {player1.username} vs {player2.username}")
