@@ -36,12 +36,7 @@ def handle_play_move(data):
         'next_player': None if game.is_finished else game.players[game.current_player_index].username
     }
 
-    # Envoyer à chaque joueur individuellement au lieu d'utiliser room=
-    player1_socket_id = game.players[0].socket_id
-    player2_socket_id = game.players[1].socket_id
-
-    emit('move_played', move_data, to=player1_socket_id)
-    emit('move_played', move_data, to=player2_socket_id)
+    emit('move_played', move_data, to=game_id)
 
     logging.info(f"[GAME] {player.username} joue en ({result['row']}, {column}) dans la partie {game_id}")
 
@@ -68,9 +63,7 @@ def handle_play_move(data):
 
             logging.info(f"[GAME] Match nul dans la partie {game_id}")
 
-        # Envoyer à chaque joueur individuellement au lieu d'utiliser room=
-        emit('game_over', game_over_data, to=player1_socket_id)
-        emit('game_over', game_over_data, to=player2_socket_id)
+        emit('game_over', game_over_data, to=game_id)
 
         # Nettoyer la partie
         clean_game(game, game_id)
@@ -113,24 +106,6 @@ def handle_forfeit():
     logging.info(f"[GAME] {player.username} abandonne contre {opponent_player.username} dans la partie {game_id}")
 
     # 3-4. Mettre à jour les stats et nettoyer
-    clean_game(game, game_id)
-
-@socketio.on('forfeit')
-def handle_forfeit():
-    socket_id = request.sid
-
-    player = connected_clients[socket_id]
-    game_id = player.current_game_id
-    game = active_games[game_id]
-
-    opponent_socket_id = game.get_opponent_socket_id(socket_id)
-
-    emit('forfeit', {'message': f"{player.username} a abandonné la partie."}, to=opponent_socket_id)
-
-    opponent_player = connected_clients[opponent_socket_id]
-    game.is_finished = True
-    game.winner = game.players.index(opponent_player) + 1
-
     clean_game(game, game_id)
 
 def clean_game(game, game_id):
