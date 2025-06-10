@@ -29,7 +29,7 @@ def handle_play_move(data):
 
     emit('move_played', {'grid': game.board.grid}, to=game_id)
 
-    if game.player_win(row, column):
+    if game.player_win(row, column, game.current_player_index + 1):
         game.winner = game.current_player_index + 1
         game.is_finished = True
     elif game.board.is_board_full():
@@ -44,7 +44,7 @@ def handle_play_move(data):
             winner_username = game.players[game.winner - 1].username
             game_over_data = {'winner': winner_username,'reason': 'victory'}
 
-            logging.info(f"Victory of : {winner_username.username} in the party : {game_id}")
+            logging.info(f"Victory of : {winner_username} in the party : {game_id}")
         else:
             game_over_data = {'winner': None, 'reason': 'draw'}
 

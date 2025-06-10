@@ -10,9 +10,6 @@ from flask_socketio import leave_room
 from database import init_database, logout_user_update
 from models import MatchmakingQueue, Player, Status
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-load_dotenv()
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
@@ -23,18 +20,6 @@ socketio = SocketIO(
     ping_interval=5,
     max_http_buffer_size=1000000
 )
-
-clients_dictionary = {}
-active_games = {}
-queue = MatchmakingQueue()
-
-init_database()
-
-host = os.getenv('SERVER_HOST')
-port = int(os.getenv('SERVER_PORT'))
-
-logging.info(f"Server starting on : {host}:{port}")
-socketio.run(app, host=host, port=port, allow_unsafe_werkzeug=True)
 
 @socketio.on('connect')
 def handle_connect():
@@ -57,7 +42,7 @@ def handle_disconnect():
             # Local import to avoid circular import issues
             from handlers import handle_forfeit
             handle_forfeit(True, socket_id)
-            leave_room(player.current_game_id, sid=socket_id) # To check
+            leave_room(player.current_game_id, sid=socket_id)
 
         logout_user_update(player)
 
@@ -66,3 +51,19 @@ def handle_disconnect():
         logging.info(f"[DISCONNECT] {socket_id} from {request.remote_addr}")
 
     del clients_dictionary[socket_id]
+
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+load_dotenv()
+
+clients_dictionary = {}
+active_games = {}
+queue = MatchmakingQueue()
+
+init_database()
+
+host = os.getenv('SERVER_HOST')
+port = int(os.getenv('SERVER_PORT'))
+
+logging.info(f"Server starting on : {host}:{port}")
+socketio.run(app, host=host, port=port, allow_unsafe_werkzeug=True)

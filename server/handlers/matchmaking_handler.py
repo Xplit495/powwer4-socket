@@ -2,8 +2,7 @@ import logging
 import random
 import uuid
 
-from dotenv import load_dotenv
-from flask import Flask, request
+from flask import request
 from flask_socketio import emit, join_room
 
 from server import socketio, clients_dictionary, active_games, queue
@@ -35,7 +34,7 @@ def handle_leave_queue():
     logging.info(f"{player.username} leave the queue")
 
 def check_matchmaking():
-    if queue.size() > 2:
+    if queue.size() >= 2:
         game_id = str(uuid.uuid4())
 
         player1_socket_id, player2_socket_id = queue.find_match()
@@ -43,7 +42,7 @@ def check_matchmaking():
         player2 = clients_dictionary[player2_socket_id]
 
         current_player_index = random.randint(1, 2) - 1 # Less 1 to stay coherent with 0-based index
-        active_games[game_id] = [Game(game_id, player1, player2, current_player_index)]
+        active_games[game_id] = Game(game_id, player1, player2, current_player_index)
 
         player1.start_game(game_id)
         player2.start_game(game_id)

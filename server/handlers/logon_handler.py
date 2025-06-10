@@ -2,6 +2,7 @@ import logging
 import uuid
 from datetime import datetime
 
+import bcrypt
 from flask import request
 from flask_socketio import emit
 
@@ -17,10 +18,10 @@ from server.utils import check_credentials_format
 @socketio.on('register')
 def handle_register(data):
     email = data['email'].lower().strip()
-    password_hash = data['password']
+    password = data['password']
     username = data['username'].strip()
 
-    validation_result = check_credentials_format(email, password_hash, username, True)
+    validation_result = check_credentials_format(email, password, username, True)
     if not validation_result['valid']:
         emit('register_error', {'message': validation_result['error']})
         return
@@ -33,6 +34,9 @@ def handle_register(data):
         emit('register_error', {'message': 'Ce nom d\'utilisateur est déjà pris'})
         return
 
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    password_hash = password_hash.decode('utf-8')
+
     player_id = str(uuid.uuid4())
 
     add_user_in_database(player_id, email, password_hash, username)
@@ -43,9 +47,9 @@ def handle_register(data):
 @socketio.on('login')
 def handle_login(data):
     email = data['email'].lower().strip()
-    password_hash = data['password']
+    password = data['password']
 
-    validation_result = check_credentials_format(email, password_hash, None, False)
+    validation_result = check_credentials_format(email, password, None, False)
     if not validation_result['valid']:
         emit('login_error', {'message': validation_result['error']})
         return
@@ -56,7 +60,7 @@ def handle_login(data):
         emit('login_error', {'message': 'Email ou mot de passe incorrect'})
         return
 
-    if user['password_hash'] != password_hash:
+    if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
         emit('login_error', {'message': 'Email ou mot de passe incorrect'})
         return
 

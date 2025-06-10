@@ -115,3 +115,6 @@ def update_game_history(game):
         ) VALUES (?, ?, ?, ?, ?, ?, ?)
     """,(game.game_id, game.players[0].player_id, game.players[0].username, game.players[1].player_id,
         game.players[1].username, game.winner, game.game_date))
+
+    conn.commit()
+    conn.close()
