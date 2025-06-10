@@ -1,17 +1,18 @@
 import uuid
+from datetime import datetime
 
 from .board import Board
 
 
 class Game:
     def __init__(self, player1, player2):
+        self.game_id = str(uuid.uuid4())
         self.board = Board()
         self.players = [player1, player2]
         self.current_player_index = 0
         self.is_finished = False
         self.winner = None
-        self.last_move = None
-        self.game_id = str(uuid.uuid4())
+        self.game_date = str(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     def play_move(self, player, column):
         if self.players[self.current_player_index] != player:
@@ -24,7 +25,6 @@ class Game:
         player_number = self.current_player_index + 1
 
         self.board.add_piece(row, column, player_number)
-        self.last_move = (row, column)
 
         if self.check_victory(row, column, player_number):
             self.winner = player_number

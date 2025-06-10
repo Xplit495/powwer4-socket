@@ -1,8 +1,9 @@
-from flask import request
-from flask_socketio import emit
 import logging
 
-from server import socketio, active_games, connected_clients
+from flask import request
+from flask_socketio import emit
+
+from server import socketio, active_games, clients_dictionary
 
 
 @socketio.on('play_move')
@@ -12,7 +13,7 @@ def handle_play_move(data):
 
     logging.info(f"[GAME] Coup joué par {socket_id}: colonne {column}")
 
-    player = connected_clients[socket_id]
+    player = clients_dictionary[socket_id]
     game_id = player.current_game_id
 
     if not game_id or game_id not in active_games:
@@ -75,7 +76,7 @@ def handle_forfeit():
     logging.info(f"[GAME] Forfait demandé par {socket_id}")
 
     # 1. Identifier la partie en cours
-    player = connected_clients[socket_id]
+    player = clients_dictionary[socket_id]
     game_id = player.current_game_id
 
     if not game_id or game_id not in active_games:
@@ -86,7 +87,7 @@ def handle_forfeit():
 
     # 2. Déclarer l'adversaire vainqueur
     opponent_socket_id = game.get_opponent_socket_id(socket_id)
-    opponent_player = connected_clients[opponent_socket_id]
+    opponent_player = clients_dictionary[opponent_socket_id]
 
     # Marquer la partie comme terminée avec l'adversaire comme gagnant
     game.is_finished = True
@@ -101,7 +102,7 @@ def handle_forfeit():
         'message': f"{player.username} a abandonné la partie"
     }
 
-    emit('game_over', forfeit_data, room=game_id)
+    emit('game_over', forfeit_data, to=game_id)
 
     logging.info(f"[GAME] {player.username} abandonne contre {opponent_player.username} dans la partie {game_id}")
 

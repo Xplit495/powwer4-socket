@@ -4,8 +4,8 @@ from enum import Enum
 
 class Status(Enum):
     ONLINE = 0
-    IDLE = 1
-    WAITING = 2
+    CONNECTED = 1
+    IN_QUEUE = 2
     IN_GAME = 3
 
 class Player:
@@ -28,11 +28,11 @@ class Player:
         self.joined_queue_at = None
 
     def join_queue(self):
-        self.status = Status.WAITING
+        self.status = Status.IN_QUEUE
         self.joined_queue_at = datetime.now()
 
     def leave_queue(self):
-        self.status = Status.IDLE
+        self.status = Status.CONNECTED
         self.joined_queue_at = None
         self.current_game_id = None
 
@@ -42,7 +42,7 @@ class Player:
         self.joined_queue_at = None
 
     def end_game(self, result):
-        self.status = Status.IDLE
+        self.status = Status.CONNECTED
         self.current_game_id = None
         self.total_games_count += 1
         match result:

@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS game_history (
 
     winner INTEGER NOT NULL,
 
-    game_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    game_date TIMESTAMP
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);

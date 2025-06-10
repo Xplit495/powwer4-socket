@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from flask import Flask, request
 from flask_socketio import emit, join_room
 
-from server import socketio, connected_clients, active_games
+from server import socketio, clients_dictionary, active_games
 from server.models import Game
 
 
@@ -14,7 +14,7 @@ def handle_join_queue():
     socket_id = request.sid
     logging.info(f"[MATCHMAKING] Joueur {socket_id} tente de rejoindre la queue")
 
-    player = connected_clients[socket_id]
+    player = clients_dictionary[socket_id]
 
     active_games.add_player(socket_id)
     player.join_queue()
@@ -36,7 +36,7 @@ def handle_leave_queue():
     socket_id = request.sid
     logging.info(f"[MATCHMAKING] Joueur {socket_id} tente de quitter la queue")
 
-    player = connected_clients[socket_id]
+    player = clients_dictionary[socket_id]
 
     active_games.remove_player(socket_id)
     player.leave_queue()
@@ -47,15 +47,15 @@ def handle_leave_queue():
 
 def check_matchmaking():
     if active_games.size() < 2:
-        logging.debug(f"[MATCHMAKING] Pas assez de joueurs en queue: {active_games.size()}")
+        logging.info(f"[MATCHMAKING] Pas assez de joueurs en queue: {active_games.size()}")
         return
 
     match = active_games.find_match()
 
     player1_socket_id, player2_socket_id = match
 
-    player1 = connected_clients[player1_socket_id]
-    player2 = connected_clients[player2_socket_id]
+    player1 = clients_dictionary[player1_socket_id]
+    player2 = clients_dictionary[player2_socket_id]
 
     game = Game(player1, player2)
     game_id = game.game_id
@@ -96,7 +96,7 @@ def check_matchmaking():
 def handle_queue_status():
     socket_id = request.sid
 
-    player = connected_clients[socket_id]
+    player = clients_dictionary[socket_id]
 
     position = active_games.get_position(socket_id)
 

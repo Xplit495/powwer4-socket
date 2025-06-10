@@ -11,11 +11,5 @@ class MatchmakingQueue:
     def find_match(self):
         return self.queue.pop(0), self.queue.pop(0)
 
-    def is_player_in_queue(self, socket_id):
-        return socket_id in self.queue
-
-    def size(self):
-        return len(self.queue)
-
     def get_position(self, socket_id):
         return self.queue.index(socket_id) + 1

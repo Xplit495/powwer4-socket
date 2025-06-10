@@ -1,20 +1,23 @@
 import logging
-import sqlite3
 import os
+import sqlite3
+from pathlib import Path
+
+db_path = Path(__file__).resolve().parent / "db.sqlite"
+schema_path = Path(__file__).resolve().parent / "schema.sql"
 
 def init_database():
-    if os.path.exists('db.sqlite'):
+    if os.path.exists(db_path):
         logging.info("La base de données existe déjà. Aucune action n'est nécessaire.")
         return
 
-    conn = sqlite3.connect('db.sqlite')
+    conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    with open('schema.sql', 'r') as schema_file:
+    with open(schema_path, 'r') as schema_file:
         schema_sql = schema_file.read()
         cursor.executescript(schema_sql)
 
     conn.commit()
-    logging.info("Fichier et tables de la base de données créée avec succès.")
-
     conn.close()
+    logging.warning("Fichier et tables de la base de données créée avec succès.")
