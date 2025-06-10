@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS game_history (
     player_id_2 TEXT NOT NULL,
     player_username_2 TEXT NOT NULL,
 
-    winner INTEGER NOT NULL,
+    winner INTEGER,
 
     game_date TIMESTAMP
 );

@@ -4,7 +4,7 @@ from datetime import datetime
 
 import bcrypt
 from flask import request
-from flask_socketio import emit
+from flask_socketio import emit, disconnect
 
 from server import socketio, clients_dictionary
 from server.database import (
@@ -90,6 +90,7 @@ def handle_logout():
     logout_user_update(player)
 
     del clients_dictionary[socket_id]
+    disconnect()
 
     emit('logout_success', {'message': 'Déconnexion réussie'})
     logging.info(f"User disconnected: {player.username} ({socket_id})")

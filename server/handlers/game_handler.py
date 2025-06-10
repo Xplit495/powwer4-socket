@@ -63,9 +63,7 @@ def handle_forfeit(due_to_disconnection=False, socket_id=None):
     function from 'disconnect' event in server.py. So the function exceptionally has arguments with default values bc
     the function can be called directly from the client so it's easier to handle the case here instead of send the parameters via the client.
     """
-    if due_to_disconnection:
-        socket_id = socket_id
-    else:
+    if not due_to_disconnection:
         socket_id = request.sid
     player = clients_dictionary[socket_id]
 
