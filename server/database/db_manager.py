@@ -46,3 +46,61 @@ def create_user(player_id, email, password_hash, username):
 
     conn.commit()
     conn.close()
+
+def get_user_by_email(email):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT player_id, email, password_hash, username,
+               total_games_count, win_games_count, lose_games_count, tie_games_count,
+               latest_socket_id, latest_player_ip, last_connection_time
+        FROM users WHERE email = ?
+    """, (email,))
+
+    result = cursor.fetchone()
+    conn.close()
+
+    if result:
+        return {
+            'player_id': result['player_id'],
+            'email': result['email'],
+            'password_hash': result['password_hash'],
+            'username': result['username'],
+            'total_games_count': result['total_games_count'],
+            'win_games_count': result['win_games_count'],
+            'lose_games_count': result['lose_games_count'],
+            'tie_games_count': result['tie_games_count'],
+            'latest_socket_id': result['latest_socket_id'],
+            'latest_player_ip': result['latest_player_ip'],
+            'last_connection_time': result['last_connection_time']
+        }
+    return None
+
+def login_user_update(player_id, socket_id, player_ip, last_connection_time):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE users 
+        SET latest_socket_id = ?, 
+            latest_player_ip = ?, 
+            last_connection_time = ?
+        WHERE player_id = ?
+    """, (socket_id, player_ip, last_connection_time, player_id))
+
+    conn.commit()
+    conn.close()
+
+def logout_user_update(player):
+    """
+    Met à jour les statistiques du joueur qu'il soit partie de l'application.
+
+    Il faut faire un appel à la base de données pour mettre à jour les stats persistantes.
+    """
+    # TODO: Implémenter la mise à jour des stats
+
+def update_game_stats(game):
+    """
+    Ajoute les statistiques d'une partie à la base de données.
+    """

@@ -9,29 +9,32 @@ class Status(Enum):
     IN_GAME = 3
 
 class Player:
-    def __init__(self, socket_id, player_ip, connected_at, authenticated):
+    def __init__(self, socket_id, player_ip, authenticated):
+        # This 3 arguments are initialized when the player connects to the server.
         self.socket_id = socket_id
         self.player_ip = player_ip
-        self.connected_at = connected_at
-        self.authenticated = authenticated
-
+        self.authenticated = authenticated # This argument is updated when the player login.
+        # This 7 arguments are initialized when the player login.
         self.player_id = None
-
         self.username = None
-
         self.total_games_count = None
         self.win_games_count = None
-        self.lose_games_count = None # total_games_count - win_games_count
-        self.tie_games_count = None # total_games_count - (win_games_count + lose_games_count)
-
+        self.lose_games_count = None
+        self.tie_games_count = None
+        self.connected_at = None
+        # This 3 arguments are often updated during the game.
         self.status = Status.ONLINE
         self.current_game_id = None
-
         self.joined_queue_at = None
 
     def join_queue(self):
         self.status = Status.WAITING
         self.joined_queue_at = datetime.now()
+
+    def leave_queue(self):
+        self.status = Status.IDLE
+        self.joined_queue_at = None
+        self.current_game_id = None
 
     def start_game(self, game_id):
         self.status = Status.IN_GAME

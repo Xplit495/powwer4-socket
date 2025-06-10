@@ -22,12 +22,7 @@ socketio = SocketIO(
     max_http_buffer_size=1000000
 )
 
-logging.basicConfig( # Bien penser à exporter cette variable pour l'utiliser partout dans le code et ne pas avoir besoin d'importer logging dans chaque fichier (j'ai la flemme de le faire pour l'instant)
-    level=logging.DEBUG, # Bien demander à Claude ce que fait précisément le logger. Mais quand même vérifier si c'est utile ou pas sinon importer logger à chaque fois.
-    format='[%(asctime)s] %(levelname)s: %(message)s',
-    datefmt='%H:%M:%S'
-)
-logger = logging.getLogger(__name__)
+server_start_time = datetime.now()
 
 connected_clients = {}
 active_games = {}
@@ -37,9 +32,9 @@ queue = MatchmakingQueue()
 def handle_connect():
     socket_id = request.sid
 
-    connected_clients[socket_id] = Player(socket_id, request.remote_addr, datetime.now(), False)
+    connected_clients[socket_id] = Player(socket_id, request.environ.get('REMOTE_ADDR', 'unknown'), False)
 
-    logger.info(f"[CONNECT] {socket_id} from {request.remote_addr}")
+    logging.info(f"[CONNECT] {socket_id} from {request.remote_addr}")
 
     emit('connected', {
         'status': 'connected',
@@ -51,21 +46,24 @@ def handle_disconnect():
     socket_id = request.sid
 
     if socket_id not in connected_clients:
-        logger.warning(f"[DISCONNECT] Socket inconnu: {socket_id}")
+        logging.warning(f"[DISCONNECT] Socket inconnu: {socket_id}")
         return
 
     player = connected_clients[socket_id]
 
-    connection_duration = str(datetime.now() - player.connected_at).split('.')[0]
-    logger.info(f"[DISCONNECT] {player.username} ({socket_id}) depuis {player.player_ip} après {connection_duration}")
+    if player.authenticated and player.connected_at:
+        connection_duration = str(datetime.now() - player.connected_at).split('.')[0]
+        logging.info(f"[DISCONNECT] {player.username} ({socket_id}) depuis {player.player_ip} après {connection_duration}")
+    else:
+        logging.info(f"[DISCONNECT] Client non-authentifié ({socket_id}) depuis {player.player_ip}")
 
     if player.status == Status.WAITING :
         queue.remove_player(socket_id)
         
     if player.status == Status.IN_GAME:
         # Import local pour éviter une importation circulaire
-        from .handlers import forfeit_due_to_disconnection
-        forfeit_due_to_disconnection(socket_id, player)
+        from .handlers import handle_forfeit
+        handle_forfeit(socket_id, player)
 
     del connected_clients[socket_id]
 
@@ -84,24 +82,22 @@ def broadcast_to_game(game_id, event_name, data, exclude_sid=None):
 
 @socketio.on('get_server_stats')
 def handle_get_server_stats():
-    """
-    OPTIONNEL : Pour monitoring.
+    authenticated_players = sum(1 for player in connected_clients.values() if player.authenticated)
 
-    Retourne :
-    - Nombre de joueurs connectés
-    - Nombre de parties en cours
-    - Joueurs dans la queue
-    - Uptime du serveur
-    """
-    # TODO: Implémenter si nécessaire
-    pass
+    return {
+        'total_connections': len(connected_clients),
+        'authenticated_players': authenticated_players,
+        'players_in_queue': queue.size(),
+        'active_games': len(active_games),
+        'server_uptime': str(datetime.now() - server_start_time)
+    }
 
 if __name__ == '__main__':
     host = os.getenv('SERVER_HOST')
     port = int(os.getenv('SERVER_PORT'))
     debug = os.getenv('DEBUG') == 'True'
 
-    logger.info(f"Démarrage du serveur sur {host}:{port}")
+    logging.info(f"Démarrage du serveur sur {host}:{port}")
 
     init_database()
 

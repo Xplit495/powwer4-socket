@@ -1,17 +1,19 @@
 import logging
-import re
 import uuid
+from datetime import datetime
 
+from flask import request
 from flask_socketio import emit
 
-from server import socketio
-from server.database import email_exists, username_exists, create_user
+from server import socketio, connected_clients
+from server.database import email_exists, username_exists, create_user, get_user_by_email, login_user_update
+from server.utils import check_credentials_format
 
 
 @socketio.on('register')
 def handle_register(data):
     try:
-        validation_result = validate_registration_data(data)
+        validation_result = check_credentials_format(data, True)
         if not validation_result['valid']:
             emit('register_error', {'message': validation_result['error']})
             return
@@ -45,43 +47,48 @@ def handle_register(data):
 
 @socketio.on('login')
 def handle_login(data):
-    """
-    OPTIONNEL : Si vous avez un système de comptes persistants.
+    try:
+        validation_result = check_credentials_format(data, False)
+        if not validation_result['valid']:
+            emit('login_error', {'message': validation_result['error']})
+            return
 
-    DONNÉES REÇUES : {
-        'email': str,
-        'password': str
-    }
+        email = data['email'].lower().strip()
+        password_hash = data['password']
 
-    CE QUE CETTE FONCTION DOIT FAIRE :
-    1. Vérifier les credentials dans la base de données
-    2. Créer une session pour le joueur
-    3. Charger les stats du joueur
-    4. Répondre avec un token ou les infos du joueur
-    """
-    # TODO: Implémenter si nécessaire
-    pass
+        user = get_user_by_email(email)
+        if not user:
+            emit('login_error', {'message': 'Email ou mot de passe incorrect'})
+            return
 
-# Pour faire jolie, car une verification via mail serait plus esthétique, mais ce sera un bonus
-def validate_registration_data(data):
-    required_fields = ['email', 'username', 'password']
-    for field in required_fields:
-        if field not in data or not data[field]:
-            return {'valid': False, 'error': f'Le champ {field} est requis'}
+        if user['password_hash'] != password_hash:
+            emit('login_error', {'message': 'Email ou mot de passe incorrect'})
+            return
 
-    email = data['email'].strip()
-    username = data['username'].strip()
-    password = data['password']
+        socket_id = request.sid
+        player_ip = request.environ.get('REMOTE_ADDR', 'unknown')
+        last_connection_time = datetime.now()
 
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-    if not re.match(email_pattern, email):
-        return {'valid': False, 'error': 'Format d\'email invalide'}
+        login_user_update(user['player_id'], socket_id, player_ip, last_connection_time)
 
-    username_pattern = r'^[a-zA-Z0-9_-]+$'
-    if not re.match(username_pattern, username):
-        return {'valid': False, 'error': 'Le nom d\'utilisateur ne peut contenir que des lettres, chiffres, _ et -'}
+        logging.info(f"Informations de connexion / token mis à jour pour l'utilisateur: {user['player_id']}")
 
-    if len(password) < 10:  # Un hash devrait être plus long
-        return {'valid': False, 'error': 'Mot de passe invalide'}
+        player = connected_clients[socket_id]
+        player.authenticated = True
+        player.player_id = user['player_id']
+        player.username = user['username']
+        player.total_games_count = user['total_games_count']
+        player.win_games_count = user['win_games_count']
+        player.lose_games_count = user['lose_games_count']
+        player.tie_games_count = user['tie_games_count']
+        player.connected_at = datetime.now()
 
-    return {'valid': True, 'error': None}
+        emit('login_success', {
+            'message': 'Connexion réussie',
+        })
+
+        logging.info(f"Utilisateur connecté: {user['username']} ({email}) - Socket: {socket_id}")
+
+    except Exception as e:
+        logging.error(f"Erreur lors de la connexion: {e}")
+        emit('login_error', {'message': 'Erreur serveur, veuillez réessayer'})

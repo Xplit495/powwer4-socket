@@ -1,1 +1,1 @@
-from .db_manager import email_exists, username_exists, create_user
+from .db_manager import email_exists, username_exists, create_user, get_user_by_email, login_user_update
