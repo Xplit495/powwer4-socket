@@ -34,7 +34,6 @@ class Player:
     def leave_queue(self):
         self.status = Status.CONNECTED
         self.joined_queue_at = None
-        self.current_game_id = None
 
     def start_game(self, game_id):
         self.status = Status.IN_GAME
@@ -52,8 +51,3 @@ class Player:
                 self.win_games_count += 1
             case 'lose':
                 self.lose_games_count += 1
-
-    def get_win_rate(self):
-        if self.total_games_count == 0:
-            return 0
-        return round((self.win_games_count / self.total_games_count) * 100, 1)

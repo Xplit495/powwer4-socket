@@ -54,9 +54,9 @@ def handle_disconnect():
             queue.remove_player(socket_id)
 
         elif player.status == Status.IN_GAME:
-            # Import local pour éviter une importation circulaire
+            # Local import to avoid circular import issues
             from handlers import handle_forfeit
-            handle_forfeit() # To check
+            handle_forfeit(True, socket_id)
             leave_room(player.current_game_id, sid=socket_id) # To check
 
         logout_user_update(player)

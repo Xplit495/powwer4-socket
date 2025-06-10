@@ -14,10 +14,10 @@ class Board:
                 return row
         return None
 
-    def is_valid_column(self, column):
-        return self.grid[0][column] is None
+    def is_column_full(self, column):
+        return self.grid[0][column] is not None
 
-    def is_full(self):
+    def is_board_full(self):
         for col in range(7):
             if self.grid[0][col] is None:
                 return False

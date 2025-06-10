@@ -13,3 +13,6 @@ class MatchmakingQueue:
 
     def get_position(self, socket_id):
         return self.queue.index(socket_id) + 1
+
+    def size(self):
+        return len(self.queue)

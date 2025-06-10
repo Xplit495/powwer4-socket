@@ -8,7 +8,7 @@ schema_path = Path(__file__).resolve().parent / "schema.sql"
 
 def init_database():
     if os.path.exists(db_path):
-        logging.info("La base de données existe déjà. Aucune action n'est nécessaire.")
+        logging.info("Database already exist !")
         return
 
     conn = sqlite3.connect(db_path)

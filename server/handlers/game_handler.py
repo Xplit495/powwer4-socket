@@ -9,104 +9,77 @@ from server import socketio, active_games, clients_dictionary
 @socketio.on('play_move')
 def handle_play_move(data):
     socket_id = request.sid
-    column = data.get('column')
-
-    logging.info(f"[GAME] Coup joué par {socket_id}: colonne {column}")
-
     player = clients_dictionary[socket_id]
+
     game_id = player.current_game_id
-
-    if not game_id or game_id not in active_games:
-        emit('move_error', {'message': 'Aucune partie en cours'})
-        return
-
     game = active_games[game_id]
 
-    result = game.play_move(player, column)
+    column = data['column']
+    row = game.board.get_lowest_empty_row(column)
 
-    if not result['success']:
-        emit('move_error', {'message': result['error']})
-        logging.warning(f"[GAME] Coup invalide de {player.username}: {result['error']}")
+    if game.players[game.current_player_index] != player:
+        emit('move_error', {'message': 'Ce n\'est pas votre tour de jouer.'})
         return
 
-    move_data = {
-        'player': player.username,
-        'player_number': game.players.index(player) + 1,
-        'column': column,
-        'row': result['row'],
-        'next_player': None if game.is_finished else game.players[game.current_player_index].username
-    }
+    if game.board.is_column_full(column):
+        emit('move_error', {'message': 'La colonne est pleine.'})
+        return
 
-    emit('move_played', move_data, to=game_id)
+    game.play_move(row, column)
 
-    logging.info(f"[GAME] {player.username} joue en ({result['row']}, {column}) dans la partie {game_id}")
+    emit('move_played', {'grid': game.board.grid}, to=game_id)
+
+    if game.player_win(row, column):
+        game.winner = game.current_player_index + 1
+        game.is_finished = True
+    elif game.board.is_board_full():
+        game.is_finished = True
+    else:
+        game.current_player_index = 1 - game.current_player_index
+        emit('your_turn', {'your_turn': True}, to=game.get_opponent_socket_id(socket_id))
+        emit('your_turn', {'your_turn': False}, to=socket_id)
 
     if game.is_finished:
         if game.winner:
-            winner_player = game.players[game.winner - 1]  # winner est 1-based
-            loser_player = game.players[2 - game.winner]   # L'autre joueur
+            winner_username = game.players[game.winner - 1].username
+            game_over_data = {'winner': winner_username,'reason': 'victory'}
 
-            game_over_data = {
-                'game_over': True,
-                'winner': winner_player.username,
-                'winner_player_number': game.winner,
-                'reason': 'victory'
-            }
-
-            logging.info(f"[GAME] Victoire de {winner_player.username} dans la partie {game_id}")
+            logging.info(f"Victory of : {winner_username.username} in the party : {game_id}")
         else:
-            # Match nul
-            game_over_data = {
-                'game_over': True,
-                'winner': None,
-                'reason': 'draw'
-            }
+            game_over_data = {'winner': None, 'reason': 'draw'}
 
-            logging.info(f"[GAME] Match nul dans la partie {game_id}")
+            logging.info(f"Tie game in : {game_id}")
 
         emit('game_over', game_over_data, to=game_id)
 
-        # Nettoyer la partie
         clean_game(game, game_id)
 
 @socketio.on('forfeit')
-def handle_forfeit():
-    socket_id = request.sid
-
-    logging.info(f"[GAME] Forfait demandé par {socket_id}")
-
-    # 1. Identifier la partie en cours
+def handle_forfeit(due_to_disconnection=False, socket_id=None):
+    """
+    The following if/else is to determine special cases where the player forfeits due to disconnection,
+    so he can transmit his socket_id to the function, so the socket_id is sent via handle_disconnect()
+    function from 'disconnect' event in server.py. So the function exceptionally has arguments with default values bc
+    the function can be called directly from the client so it's easier to handle the case here instead of send the parameters via the client.
+    """
+    if due_to_disconnection:
+        socket_id = socket_id
+    else:
+        socket_id = request.sid
     player = clients_dictionary[socket_id]
+
     game_id = player.current_game_id
-
-    if not game_id or game_id not in active_games:
-        emit('forfeit_error', {'message': 'Aucune partie en cours'})
-        return
-
     game = active_games[game_id]
 
-    # 2. Déclarer l'adversaire vainqueur
     opponent_socket_id = game.get_opponent_socket_id(socket_id)
     opponent_player = clients_dictionary[opponent_socket_id]
 
-    # Marquer la partie comme terminée avec l'adversaire comme gagnant
     game.is_finished = True
-    game.winner = game.players.index(opponent_player) + 1
+    game.winner = game.players.index(opponent_player) + 1 # For more human-readable the index is incremented by 1 (p1 = 1, p2 = 2)
 
-    # 5. Notifier les deux joueurs
-    forfeit_data = {
-        'game_over': True,
-        'winner': opponent_player.username,
-        'winner_player_number': game.winner,
-        'reason': 'forfeit',
-        'message': f"{player.username} a abandonné la partie"
-    }
+    emit('game_over', {'winner': opponent_player.username, 'message': f"{player.username} a déclaré forfait."}, to=game_id)
+    logging.info(f"{player.username} forfeit against {opponent_player.username} in the party : {game_id}")
 
-    emit('game_over', forfeit_data, to=game_id)
-
-    logging.info(f"[GAME] {player.username} abandonne contre {opponent_player.username} dans la partie {game_id}")
-
-    # 3-4. Mettre à jour les stats et nettoyer
     clean_game(game, game_id)
 
 def clean_game(game, game_id):
@@ -125,6 +98,6 @@ def clean_game(game, game_id):
 
         player.end_game(result)
 
-        logging.info(f"[GAME FINISH] {player.username} - {result} - Partie {game_id}")
+    logging.info(f"Game finished : {game_id}")
 
     del active_games[game_id]
