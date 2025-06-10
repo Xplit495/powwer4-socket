@@ -89,8 +89,7 @@ def handle_logout():
 
     logout_user_update(player)
 
-    del clients_dictionary[socket_id]
-    disconnect()
-
     emit('logout_success', {'message': 'Déconnexion réussie'})
     logging.info(f"User disconnected: {player.username} ({socket_id})")
+
+    disconnect()
