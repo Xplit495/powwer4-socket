@@ -15,6 +15,10 @@ BOARD_COLS = 7
 class GameView(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
+        self.board_frame = None
+        self.status_label = None
+        self.opponent_label = None
+        self.info_frame = None
         self.controller = controller
         self.board_buttons = []
         self.current_player = None

@@ -4,6 +4,13 @@ class LoginView(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        self.register_error = None
+        self.reg_password = None
+        self.reg_username = None
+        self.reg_email = None
+        self.login_error = None
+        self.login_password = None
+        self.login_email = None
 
         title = ctk.CTkLabel(self, text="Puissance 4 Online", font=("Arial", 36, "bold"))
         title.pack(pady=40)
