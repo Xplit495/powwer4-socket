@@ -1,5 +1,6 @@
 import customtkinter as ctk
-from client.utils.constants import MSG_WAITING
+
+MSG_WAITING = "Recherche d'un adversaire..."
 
 class WaitingView(ctk.CTkFrame):
     def __init__(self, parent, controller):

@@ -1,6 +1,16 @@
 import customtkinter as ctk
-from client.utils.constants import *
-from client.utils.config import BOARD_ROWS, BOARD_COLS
+
+PLAYER1_COLOR = "#FF0000"
+PLAYER2_COLOR = "#FFAF00"
+EMPTY_COLOR = "gray20"
+HOVER_COLOR = "gray30"
+CELL_SIZE = 70
+CELL_PADDING = 3
+MSG_YOUR_TURN = "À votre tour"
+MSG_OPPONENT_TURN = "Tour de l'adversaire"
+
+BOARD_ROWS = 6
+BOARD_COLS = 7
 
 class GameView(ctk.CTkFrame):
     def __init__(self, parent, controller):

@@ -1,8 +1,0 @@
-SERVER_URL = "http://localhost:5000"
-
-WINDOW_WIDTH = 900
-WINDOW_HEIGHT = 700
-WINDOW_TITLE = "Puissance 4 Online"
-
-BOARD_ROWS = 6
-BOARD_COLS = 7

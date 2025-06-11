@@ -1,6 +1,7 @@
 import socketio
 import threading
-from client.utils.config import SERVER_URL
+
+SERVER_URL = "http://localhost:5000"
 
 class SocketClient:
     def __init__(self):
@@ -22,7 +23,7 @@ class SocketClient:
             'register_success', 'register_error',
             'queue_joined', 'queue_left', 'game_found',
             'move_played', 'move_error', 'your_turn',
-            'game_over', 'logout_success'
+            'game_over', 'logout_success', 'forfeit'
         ]
 
         for event in events:
