@@ -1,9 +1,9 @@
 import customtkinter as ctk
-from client.config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE
-from .login_view import LoginView
-from .menu_view import MenuView
-from .waiting_view import WaitingView
-from .game_view import GameView
+from client.utils.config import WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE
+from client.gui.login_view import LoginView
+from client.gui.menu_view import MenuView
+from client.gui.waiting_view import WaitingView
+from client.gui.game_view import GameView
 
 class MainWindow:
     def __init__(self, socket_client):

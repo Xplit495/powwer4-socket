@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from client.utils import MSG_WAITING
+from client.utils.constants import MSG_WAITING
 
 class WaitingView(ctk.CTkFrame):
     def __init__(self, parent, controller):

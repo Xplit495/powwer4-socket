@@ -1,6 +1,6 @@
 import socketio
 import threading
-from client.config import SERVER_URL
+from client.utils.config import SERVER_URL
 
 class SocketClient:
     def __init__(self):

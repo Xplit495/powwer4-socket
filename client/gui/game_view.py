@@ -1,6 +1,6 @@
 import customtkinter as ctk
-from client.utils import *
-from client.config import BOARD_ROWS, BOARD_COLS
+from client.utils.constants import *
+from client.utils.config import BOARD_ROWS, BOARD_COLS
 
 class GameView(ctk.CTkFrame):
     def __init__(self, parent, controller):
