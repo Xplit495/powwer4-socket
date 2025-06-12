@@ -23,27 +23,6 @@ class LoginView(ctk.CTkFrame):
         self.setup_login_tab()
         self.setup_register_tab()
 
-    def setup_login_tab(self):
-        tab = self.tabview.add("Connexion")
-
-        self.login_email = ctk.CTkEntry(tab, placeholder_text="Email", width=300)
-        self.login_email.pack(pady=15)
-
-        self.login_password = ctk.CTkEntry(tab, placeholder_text="Mot de passe", show="*", width=300)
-        self.login_password.pack(pady=15)
-
-        login_btn = ctk.CTkButton(
-            tab,
-            text="Se connecter",
-            command=self.login,
-            width=300,
-            height=40
-        )
-        login_btn.pack(pady=20)
-
-        self.login_error = ctk.CTkLabel(tab, text="", text_color="red")
-        self.login_error.pack()
-
     def setup_register_tab(self):
         tab = self.tabview.add("Inscription")
 
@@ -59,7 +38,7 @@ class LoginView(ctk.CTkFrame):
         register_btn = ctk.CTkButton(
             tab,
             text="S'inscrire",
-            command=self.register,
+            command=self.handle_register,
             width=300,
             height=40
         )
@@ -68,26 +47,48 @@ class LoginView(ctk.CTkFrame):
         self.register_error = ctk.CTkLabel(tab, text="", text_color="red")
         self.register_error.pack()
 
-    def login(self):
+    def setup_login_tab(self):
+        tab = self.tabview.add("Connexion")
+
+        self.login_email = ctk.CTkEntry(tab, placeholder_text="Email", width=300)
+        self.login_email.pack(pady=15)
+
+        self.login_password = ctk.CTkEntry(tab, placeholder_text="Mot de passe", show="*", width=300)
+        self.login_password.pack(pady=15)
+
+        login_btn = ctk.CTkButton(
+            tab,
+            text="Se connecter",
+            command=self.handle_login,
+            width=300,
+            height=40
+        )
+        login_btn.pack(pady=20)
+
+        self.login_error = ctk.CTkLabel(tab, text="", text_color="red")
+        self.login_error.pack()
+
+    def handle_register(self):
+        email = self.reg_email.get()
+        password = self.reg_password.get()
+        username = self.reg_username.get()
+
+        if email and password and username:
+            self.register_error.configure(text="")
+            self.controller.socketio.emit('register', {'email': email, 'password': password, 'username': username})
+        else:
+            self.register_error.configure(text="Veuillez remplir tous les champs")
+
+    def handle_login(self):
         email = self.login_email.get()
         password = self.login_password.get()
 
         if email and password:
             self.login_error.configure(text="")
-            self.controller.socket_client.login(email, password)
+            self.controller.socketio.emit('login', {'email': email, 'password': password})
         else:
             self.login_error.configure(text="Veuillez remplir tous les champs")
 
-    def register(self):
-        email = self.reg_email.get()
-        username = self.reg_username.get()
-        password = self.reg_password.get()
-
-        if email and username and password:
-            self.register_error.configure(text="")
-            self.controller.socket_client.register(email, username, password)
-        else:
-            self.register_error.configure(text="Veuillez remplir tous les champs")
 
     def show(self):
         self.pack(fill="both", expand=True)
