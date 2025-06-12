@@ -89,7 +89,6 @@ class LoginView(ctk.CTkFrame):
         else:
             self.login_error.configure(text="Veuillez remplir tous les champs")
 
-
     def show(self):
         self.pack(fill="both", expand=True)
 

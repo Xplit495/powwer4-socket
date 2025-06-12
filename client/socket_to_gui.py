@@ -31,12 +31,7 @@ class SocketToGui:
 
         self.show_view("login")
 
-
         # Define socket event and GUI interaction handlers
-        @self.socketio.on('online')
-        def on_online():
-            print("Vous êtes en ligne ! Ca à été confirmé par le serveur.")
-
         @self.socketio.on('register_success')
         def on_register_success():
             print("Enregistrement réussi !")
@@ -125,8 +120,8 @@ class SocketToGui:
 
     # Utils methods for GUI interaction
     def setup_and_show_game(self, data):
-                self.views["game"].setup_game(data)
-                self.show_view("game")
+        self.views["game"].setup_game(data)
+        self.show_view("game")
 
     def update_game_state(self, grid):
        game_view = self.views["game"]
@@ -137,7 +132,7 @@ class SocketToGui:
         game_view.is_my_turn = is_my_turn
         game_view.update_status()
 
-    # Methods to handle view and run the GUI
+    # Methods to handle window views and launch socket in a separate thread
     def show_view(self, view_name):
         for view in self.views.values():
             view.hide()
@@ -146,10 +141,8 @@ class SocketToGui:
     def run(self):
         def connect_socket_thread():
             try:
-                print("Tentative de connexion au serveur...")
                 self.socketio.connect(SERVER_URL)
                 print("Lien établi avec le serveur, vous êtes en ligne !")
-                self.socketio.wait()
             except Exception as e:
                 print(f"Erreur de connexion: {e} - Assurez-vous que le serveur est en ligne.")
 
@@ -157,8 +150,3 @@ class SocketToGui:
         thread.start()
 
         self.root.mainloop()
-
-    def register(self, data):
-        print("Envoi des données d'enregistrement au serveur...")
-        self.socketio.emit('register', data)
-        print("Données d'enregistrement envoyées.")

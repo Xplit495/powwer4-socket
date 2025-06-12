@@ -4,8 +4,7 @@ from datetime import datetime
 
 from dotenv import load_dotenv
 from flask import Flask, request
-from flask_socketio import SocketIO, emit
-from flask_socketio import leave_room
+from flask_socketio import SocketIO, leave_room
 
 from database import init_database, logout_user_update
 from models import MatchmakingQueue, Player, Status
@@ -20,20 +19,15 @@ queue = MatchmakingQueue()
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
-socketio = SocketIO(
-    app,
-    async_mode='threading',
-    ping_timeout=10,
-    ping_interval=5,
-    max_http_buffer_size=1000000
-)
+socketio = SocketIO(app, async_mode='threading', ping_timeout=10, ping_interval=5)
+
+from handlers.logon_handler import handle_register
 
 @socketio.on('connect')
 def handle_connect():
     socket_id = request.sid
     clients_dictionary[socket_id] = Player(socket_id, request.environ.get('REMOTE_ADDR', 'unknown'), False)
 
-    emit('online')
     logging.info(f"[CONNECT] {socket_id} from {request.remote_addr}")
 
 @socketio.on('disconnect')
