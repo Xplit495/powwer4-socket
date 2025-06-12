@@ -76,7 +76,7 @@ def handle_forfeit(due_to_disconnection=False, socket_id=None):
     game.is_finished = True
     game.winner = game.players.index(opponent_player) + 1 # For more human-readable the index is incremented by 1 (p1 = 1, p2 = 2)
 
-    emit('game_over', {'winner': opponent_player.username, 'message': f"{player.username} a déclaré forfait."}, to=game_id)
+    emit('game_over', {'winner': opponent_player.username, 'player_who_forfeit': player.username ,'reason': "forfeit"}, to=game_id)
     logging.info(f"{player.username} forfeit against {opponent_player.username} in the party : {game_id}")
 
     clean_game(game, game_id)

@@ -4,13 +4,15 @@ class LoginView(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        self.register_error = None
-        self.reg_password = None
-        self.reg_username = None
-        self.reg_email = None
-        self.login_error = None
-        self.login_password = None
+
+        self.tabview = None
         self.login_email = None
+        self.login_password = None
+        self.login_error = None
+        self.reg_email = None
+        self.reg_username = None
+        self.reg_password = None
+        self.register_error = None
 
         title = ctk.CTkLabel(self, text="Puissance 4 Online", font=("Arial", 36, "bold"))
         title.pack(pady=40)
@@ -71,7 +73,10 @@ class LoginView(ctk.CTkFrame):
         password = self.login_password.get()
 
         if email and password:
+            self.login_error.configure(text="")
             self.controller.socket_client.login(email, password)
+        else:
+            self.login_error.configure(text="Veuillez remplir tous les champs")
 
     def register(self):
         email = self.reg_email.get()
@@ -79,7 +84,10 @@ class LoginView(ctk.CTkFrame):
         password = self.reg_password.get()
 
         if email and username and password:
+            self.register_error.configure(text="")
             self.controller.socket_client.register(email, username, password)
+        else:
+            self.register_error.configure(text="Veuillez remplir tous les champs")
 
     def show(self):
         self.pack(fill="both", expand=True)

@@ -1,0 +1,4 @@
+WINDOW_WIDTH = 900
+WINDOW_HEIGHT = 700
+WINDOW_TITLE = "Puissance 4 Online"
+SERVER_URL = "http://localhost:5000"

@@ -5,8 +5,6 @@ __pycache__/
 
 *.sqlite
 
-server/server.log
-
 server/.env
 
 /.idea/

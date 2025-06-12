@@ -17,7 +17,7 @@ def handle_join_queue():
     queue.add_player(socket_id)
     player.join_queue()
 
-    emit('queue_joined', {'message': 'Vous avez rejoint la queue'})
+    emit('queue_joined', {'size': queue.size()})
     logging.info(f"{player.username} join the queue")
 
     check_matchmaking()
@@ -30,7 +30,7 @@ def handle_leave_queue():
     queue.remove_player(socket_id)
     player.leave_queue()
 
-    emit('queue_left', {'message': 'Vous avez quitté la queue'})
+    emit('queue_left')
     logging.info(f"{player.username} leave the queue")
 
 def check_matchmaking():

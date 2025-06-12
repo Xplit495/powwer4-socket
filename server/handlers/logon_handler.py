@@ -41,7 +41,7 @@ def handle_register(data):
 
     add_user_in_database(player_id, email, password_hash, username)
 
-    emit('register_success', {'message': 'Inscription réussie ! Veuillez vous connecter.'})
+    emit('register_success')
     logging.info(f"New registered user : {username} ({email}) (player_id: {player_id})")
 
 @socketio.on('login')
@@ -56,11 +56,7 @@ def handle_login(data):
 
     user = get_user_by_email(email)
 
-    if not user:
-        emit('login_error', {'message': 'Email ou mot de passe incorrect'})
-        return
-
-    if not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+    if not user or not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')): # Check if user exists and password matches
         emit('login_error', {'message': 'Email ou mot de passe incorrect'})
         return
 
@@ -79,7 +75,7 @@ def handle_login(data):
     player.connected_at = connection_time
     player.status = Status.CONNECTED
 
-    emit('login_success', {'message': 'Connexion réussie, bienvenue !'})
+    emit('login_success', {'player_username': player.username})
     logging.info(f"User connected : {user['username']} ({email}) - Socket: {socket_id}")
 
 @socketio.on('logout')
@@ -89,7 +85,7 @@ def handle_logout():
 
     logout_user_update(player)
 
-    emit('logout_success', {'message': 'Déconnexion réussie'})
+    emit('logout_success')
     logging.info(f"User disconnected: {player.username} ({socket_id})")
 
     disconnect()

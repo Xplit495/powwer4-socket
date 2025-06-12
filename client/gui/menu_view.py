@@ -5,6 +5,8 @@ class MenuView(ctk.CTkFrame):
         super().__init__(parent)
         self.controller = controller
 
+        self.welcome_label = None
+
         center_frame = ctk.CTkFrame(self, fg_color="transparent")
         center_frame.place(relx=0.5, rely=0.5, anchor="center")
 
@@ -43,7 +45,6 @@ class MenuView(ctk.CTkFrame):
 
     def logout(self):
         self.controller.socket_client.logout()
-        self.controller.show_view("login")
 
     def show(self):
         self.pack(fill="both", expand=True)

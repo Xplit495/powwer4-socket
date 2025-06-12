@@ -1,18 +1,19 @@
 import customtkinter as ctk
 
-MSG_WAITING = "Recherche d'un adversaire..."
-
 class WaitingView(ctk.CTkFrame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+
+        self.message = None
+        self.progress = None
 
         center_frame = ctk.CTkFrame(self, fg_color="transparent")
         center_frame.place(relx=0.5, rely=0.5, anchor="center")
 
         self.message = ctk.CTkLabel(
             center_frame,
-            text=MSG_WAITING,
+            text="Recherche d'un adversaire...",
             font=("Arial", 24)
         )
         self.message.pack(pady=30)
@@ -37,8 +38,10 @@ class WaitingView(ctk.CTkFrame):
 
     def show(self):
         self.pack(fill="both", expand=True)
-        self.progress.start()
+        if self.progress:
+            self.progress.start()
 
     def hide(self):
-        self.progress.stop()
+        if self.progress:
+            self.progress.stop()
         self.pack_forget()
