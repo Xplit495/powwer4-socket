@@ -24,7 +24,6 @@ class SocketToGui:
 
         self.views = {
             "login": LoginView(self.container, self),
-            "menu": MenuView(self.container, self),
             "waiting": WaitingView(self.container, self),
             "game": GameView(self.container, self)
         }
@@ -45,8 +44,9 @@ class SocketToGui:
 
         @self.socketio.on('login_success')
         def on_login_success(data):
-            print("Connexion réussie !")
-            self.current_user = data.get('player_username')
+            self.username = data.get('player_username')
+            print("Connexion réussie ! Bienvenue,", self.username)
+            self.views["menu"] = MenuView(self.container, self)
             self.root.after(0, self.show_view, "menu")
 
         @self.socketio.on('login_error')
@@ -58,7 +58,7 @@ class SocketToGui:
         @self.socketio.on('logout_success')
         def on_logout_success():
             print("Déconnexion réussie !")
-            self.current_user = None
+            self.username = None
             self.root.after(0, self.show_view, "login")
 
         @self.socketio.on('queue_joined')

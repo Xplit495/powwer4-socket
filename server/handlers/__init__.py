@@ -1,2 +1,0 @@
-from .logon_handler import handle_register
-from game_handler import handle_forfeit

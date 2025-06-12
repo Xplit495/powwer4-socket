@@ -12,7 +12,7 @@ class MenuView(ctk.CTkFrame):
 
         self.welcome_label = ctk.CTkLabel(
             center_frame,
-            text="Bienvenue !",
+            text="Bienvenue " + str(self.controller.username),
             font=("Arial", 32, "bold")
         )
         self.welcome_label.pack(pady=40)
@@ -41,10 +41,10 @@ class MenuView(ctk.CTkFrame):
         logout_btn.pack(pady=10)
 
     def play(self):
-        self.controller.socket_client.join_queue()
+        self.controller.socketio.emit('join_queue')
 
     def logout(self):
-        self.controller.socket_client.logout()
+        self.controller.socketio.emit('logout')
 
     def show(self):
         self.pack(fill="both", expand=True)

@@ -73,7 +73,7 @@ class GameView(ctk.CTkFrame):
 
     def play_move(self, column):
         if self.is_my_turn:
-            self.controller.socket_client.play_move(column)
+            self.controller.socketio.emit('play_move', {'column':column})
 
     def update_board(self, grid):
         for row in range(BOARD_ROWS):
@@ -94,7 +94,7 @@ class GameView(ctk.CTkFrame):
             self.status_label.configure(text=MSG_OPPONENT_TURN, text_color="orange")
 
     def forfeit(self):
-        self.controller.socket_client.forfeit()
+        self.controller.socketio.emit('forfeit')
 
     def clear_board(self):
         for row in self.board_buttons:
