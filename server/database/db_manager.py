@@ -17,7 +17,7 @@ def email_exists(email):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT 1 FROM users WHERE email = ? LIMIT 1", (email,)) # Sert à retourner 1 si l'email existe, on se fiche de la valeur retournée, on veut juste savoir si l'email existe ou pas
+    cursor.execute("SELECT 1 FROM users WHERE email = ? LIMIT 1", (email,)) # Return 1 if the email exists, we don't care about the value returned, we just want to know if the email exists or not
     is_email = cursor.fetchone()
 
     conn.close()
@@ -27,7 +27,7 @@ def username_exists(username):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT 1 FROM users WHERE username = ? LIMIT 1", (username,)) # Sert à retourner 1 si le nom d'utilisateur existe, on se fiche de la valeur retournée, on veut juste savoir si le nom d'utilisateur existe ou pas
+    cursor.execute("SELECT 1 FROM users WHERE username = ? LIMIT 1", (username,)) # Return 1 if the username exists, we don't care about the value returned, we just want to know if the username exists or not
     is_username = cursor.fetchone()
 
     conn.close()
