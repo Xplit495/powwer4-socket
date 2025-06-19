@@ -1,11 +1,13 @@
 import threading
-import socketio
 
 import customtkinter as ctk
+import socketio
 
-from configs import WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT, SERVER_URL
 from gui import GameView, LoginView, MenuView, WaitingView
 
+SERVER_URL = "http://localhost:5000"
+WINDOW_WIDTH = 900
+WINDOW_HEIGHT = 700
 
 class SocketToGui:
     def __init__(self):
@@ -15,7 +17,7 @@ class SocketToGui:
         self.username = None
 
         self.root = ctk.CTk()
-        self.root.title(WINDOW_TITLE)
+        self.root.title("Puissance 4 Online")
         self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         self.root.resizable(False, False)
 
@@ -59,6 +61,8 @@ class SocketToGui:
         def on_logout_success():
             print("Déconnexion réussie !")
             self.username = None
+            self.socketio.disconnect()
+            self.socketio.connect(SERVER_URL)
             self.root.after(0, self.show_view, "login")
 
         @self.socketio.on('queue_joined')
@@ -132,7 +136,6 @@ class SocketToGui:
         game_view.is_my_turn = is_my_turn
         game_view.update_status()
 
-    # Methods to handle window views and launch socket in a separate thread
     def show_view(self, view_name):
         for view in self.views.values():
             view.hide()

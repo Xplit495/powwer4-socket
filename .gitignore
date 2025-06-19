@@ -1,12 +1,6 @@
-/venv/
-
 __pycache__/
 *.pyc
 
 *.sqlite
 
-server/.env
-
 /.idea/
-
-test

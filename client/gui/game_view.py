@@ -23,7 +23,6 @@ class GameView(ctk.CTkFrame):
         self.board_buttons = []
         self.current_player = None
         self.is_my_turn = False
-
         self.setup_ui()
 
     def setup_ui(self):

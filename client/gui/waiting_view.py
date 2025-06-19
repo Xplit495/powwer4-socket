@@ -33,7 +33,7 @@ class WaitingView(ctk.CTkFrame):
         cancel_btn.pack(pady=20)
 
     def cancel(self):
-        self.controller.socket_client.leave_queue()
+        self.controller.socketio.emit('leave_queue')
         self.controller.show_view("menu")
 
     def show(self):

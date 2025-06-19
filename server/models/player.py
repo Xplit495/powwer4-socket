@@ -10,7 +10,7 @@ class Status(Enum):
 
 class Player:
     def __init__(self, socket_id, player_ip, authenticated):
-        # This 3 arguments are initialized when the player connects to the server.
+        # This 3 arguments are initialized when the player connect to the server.
         self.socket_id = socket_id
         self.player_ip = player_ip
         self.authenticated = authenticated # This argument is updated when the player login.

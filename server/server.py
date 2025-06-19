@@ -1,11 +1,10 @@
 import logging
-import os
 import random
+import time
 import uuid
 from datetime import datetime
 
 import bcrypt
-from dotenv import load_dotenv
 from flask import Flask, request
 from flask_socketio import SocketIO, leave_room, emit, disconnect, join_room
 
@@ -14,15 +13,13 @@ from models import MatchmakingQueue, Player, Status, Game
 from utils import check_credentials_format
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-load_dotenv()
 
 clients_dictionary = {}
 active_games = {}
 queue = MatchmakingQueue()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
+app.config['SECRET_KEY'] = 'AWap9DTrxJXzkdV486KzG44CMOMByo3W' # Not very clean, but it's not in a production server.
 socketio = SocketIO(app, async_mode='threading', ping_timeout=10, ping_interval=5)
 
 @socketio.on('connect')
@@ -42,7 +39,6 @@ def handle_disconnect():
             queue.remove_player(socket_id)
 
         elif player.status == Status.IN_GAME:
-            # Local import to avoid circular import issues
             handle_forfeit(True, socket_id)
             leave_room(player.current_game_id, sid=socket_id)
 
@@ -229,6 +225,7 @@ def handle_forfeit(due_to_disconnection=False, socket_id=None):
 
 def check_matchmaking():
     if queue.size() >= 2:
+        time.sleep(1)
         game_id = str(uuid.uuid4())
 
         player1_socket_id, player2_socket_id = queue.find_match()
@@ -271,8 +268,8 @@ def clean_game(game, game_id):
 
 init_database()
 
-host = os.getenv('SERVER_HOST')
-port = int(os.getenv('SERVER_PORT'))
+host = '0.0.0.0'
+port = 5000
 
 logging.info(f"Server starting on : {host}:{port}")
 socketio.run(app, host=host, port=port, allow_unsafe_werkzeug=True)
